@@ -1,7 +1,9 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FooterDisclaimer from '../components/FooterDisclaimer';
 import { colors } from '../constants/theme';
+
+const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 export default function LoginScreen({ navigation }) {
   const handleGoogleLogin = () => {
@@ -21,8 +23,11 @@ export default function LoginScreen({ navigation }) {
             <Text style={styles.googleLabel}>구글로 계속하기</Text>
           </Pressable>
         </View>
+
+        <View style={styles.footerWrapper}>
+          <FooterDisclaimer />
+        </View>
       </View>
-      <FooterDisclaimer />
     </SafeAreaView>
   );
 }
@@ -33,7 +38,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   container: {
-    flex: 1,
+    height: SCREEN_HEIGHT,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 32,
@@ -41,11 +46,10 @@ const styles = StyleSheet.create({
   logoPlaceholder: {
     width: 120,
     height: 120,
-    backgroundColor: colors.logoPlaceholder,
+    backgroundColor: colors.headerPlaceholder,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 80,
   },
   logoText: {
     color: colors.background,
@@ -53,9 +57,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   buttonWrapper: {
-    width: '100%',
-    marginTop: 'auto',
-    marginBottom: 48,
+    position: 'absolute',
+    bottom: 48,
+    left: 32,
+    right: 32,
+  },
+  footerWrapper: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
   },
   googleButton: {
     flexDirection: 'row',
