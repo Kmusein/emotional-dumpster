@@ -9,37 +9,41 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.logoLayer}>
         <View style={styles.logoPlaceholder}>
           <Text style={styles.logoText}>로고</Text>
         </View>
+      </View>
 
-        <View style={styles.buttonWrapper}>
-          <Pressable style={styles.googleButton} onPress={handleGoogleLogin}>
-            <Text style={styles.googleIcon}>G</Text>
-            <Text style={styles.googleLabel}>구글로 계속하기</Text>
-          </Pressable>
-        </View>
+      <View style={styles.buttonLayer}>
+        <Pressable style={styles.googleButton} onPress={handleGoogleLogin}>
+          <Text style={styles.googleIcon}>G</Text>
+          <Text style={styles.googleLabel}>구글로 계속하기</Text>
+        </Pressable>
+      </View>
 
-        <View style={styles.footerWrapper}>
-          <FooterDisclaimer />
-        </View>
+      <View style={styles.footerLayer}>
+        <FooterDisclaimer />
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
     backgroundColor: colors.background,
+    position: 'relative',
   },
-  container: {
-    minHeight: '100vh',
-    alignItems: 'center',
+  logoLayer: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
     justifyContent: 'center',
-    paddingHorizontal: 32,
+    alignItems: 'center',
   },
   logoPlaceholder: {
     width: 120,
@@ -54,15 +58,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  buttonWrapper: {
+  buttonLayer: {
     position: 'absolute',
-    bottom: 48,
-    left: 32,
-    right: 32,
+    bottom: 80,
+    left: 20,
+    right: 20,
   },
-  footerWrapper: {
+  footerLayer: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 30,
     left: 0,
     right: 0,
   },
