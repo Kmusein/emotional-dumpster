@@ -1,9 +1,7 @@
-import { Dimensions, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FooterDisclaimer from '../components/FooterDisclaimer';
 import { colors } from '../constants/theme';
-
-const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 export default function LoginScreen({ navigation }) {
   const handleGoogleLogin = () => {
@@ -38,7 +36,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   container: {
-    height: SCREEN_HEIGHT,
+    minHeight: '100vh',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 32,
