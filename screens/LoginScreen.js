@@ -1,5 +1,4 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import FooterDisclaimer from '../components/FooterDisclaimer';
 import { colors } from '../constants/theme';
 
@@ -9,7 +8,7 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.screen}>
       <View style={styles.logoLayer}>
         <View style={styles.logoPlaceholder}>
           <Text style={styles.logoText}>로고</Text>
@@ -26,36 +25,35 @@ export default function LoginScreen({ navigation }) {
       <View style={styles.footerLayer}>
         <FooterDisclaimer />
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    minHeight: '100vh',
-    backgroundColor: colors.background,
-    position: 'relative',
+    backgroundColor: '#2F2F2F',
   },
   logoLayer: {
     position: 'absolute',
     top: 0,
-    bottom: 0,
     left: 0,
     right: 0,
+    bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 1,
   },
   logoPlaceholder: {
-    width: 120,
-    height: 120,
+    width: 140,
+    height: 140,
     backgroundColor: colors.headerPlaceholder,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },
   logoText: {
-    color: colors.background,
+    color: '#2F2F2F',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -64,12 +62,14 @@ const styles = StyleSheet.create({
     bottom: 80,
     left: 20,
     right: 20,
+    zIndex: 2,
   },
   footerLayer: {
     position: 'absolute',
     bottom: 30,
     left: 0,
     right: 0,
+    zIndex: 2,
   },
   googleButton: {
     flexDirection: 'row',
