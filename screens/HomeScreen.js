@@ -20,6 +20,7 @@ const TRASH_TOP = 207;
 const CHIP_WIDTH = 230;
 const CHIP_HEIGHT = 36;
 const CHIP_TOP = 546;
+const CHIP_LEFT = (REFERENCE_WIDTH - CHIP_WIDTH) / 2; // 80, matches Figma x
 
 const CTA_WIDTH = 312;
 const CTA_HEIGHT = 56;
@@ -81,6 +82,7 @@ export default function HomeScreen({ navigation, route }) {
           styles.chip,
           {
             top: CHIP_TOP * scale,
+            left: CHIP_LEFT * scale,
             width: CHIP_WIDTH * scale,
             height: CHIP_HEIGHT * scale,
           },
@@ -136,10 +138,6 @@ const styles = StyleSheet.create({
   },
   chip: {
     position: 'absolute',
-    left: 0,
-    right: 0,
-    marginHorizontal: 'auto',
-    alignSelf: 'center',
     backgroundColor: '#222222',
     borderRadius: 4,
     alignItems: 'center',

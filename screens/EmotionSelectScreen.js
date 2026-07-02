@@ -11,6 +11,7 @@ const REFERENCE_WIDTH = 390; // Figma frame width
 const DATE_CHIP_WIDTH = 230;
 const DATE_CHIP_HEIGHT = 36;
 const DATE_CHIP_TOP = 104;
+const DATE_CHIP_LEFT = (REFERENCE_WIDTH - DATE_CHIP_WIDTH) / 2; // 80, matches Figma x
 
 const GRID_TOP = 225;
 const GRID_LEFT = 29;
@@ -48,6 +49,7 @@ export default function EmotionSelectScreen({ navigation, route }) {
           styles.dateChip,
           {
             top: DATE_CHIP_TOP * scale,
+            left: DATE_CHIP_LEFT * scale,
             width: DATE_CHIP_WIDTH * scale,
             height: DATE_CHIP_HEIGHT * scale,
           },
@@ -122,9 +124,6 @@ const styles = StyleSheet.create({
   },
   dateChip: {
     position: 'absolute',
-    left: 0,
-    right: 0,
-    alignSelf: 'center',
     backgroundColor: '#222222',
     borderRadius: 4,
     alignItems: 'center',
