@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
@@ -10,52 +11,115 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import BackButton from '../components/BackButton';
 import PrimaryButton from '../components/PrimaryButton';
-import { colors } from '../constants/theme';
 import { formatKoreanDate } from '../utils/formatDate';
+
+const paperTexture = require('../assets/images/paper-texture.png');
+
+const REFERENCE_WIDTH = 390; // Figma frame width
+
+const DATE_CHIP_WIDTH = 230;
+const DATE_CHIP_HEIGHT = 36;
+const DATE_CHIP_TOP = 104;
+const DATE_CHIP_LEFT = (REFERENCE_WIDTH - DATE_CHIP_WIDTH) / 2; // 80, matches Figma x
+
+const PAPER_WRAPPER_SIZE = 350.806;
+const PAPER_WRAPPER_TOP = 189;
+const PAPER_SIZE = 286.432;
+const PAPER_ROTATION = '-15deg';
+
+const CTA_WIDTH = 312;
+const CTA_HEIGHT = 56;
+const CTA_BOTTOM_OFFSET = 73; // from Figma frame bottom
 
 export default function WriteScreen({ navigation, route }) {
   const [text, setText] = useState('');
   const emotion = route?.params?.emotion;
   const discardedCount = route?.params?.discardedCount ?? 0;
   const insets = useSafeAreaInsets();
+  const [frameWidth, setFrameWidth] = useState(REFERENCE_WIDTH);
+  const scale = frameWidth / REFERENCE_WIDTH;
 
   const handleSubmit = () => {
     navigation.navigate('Animation', { text, emotion, discardedCount });
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+    <SafeAreaView
+      style={styles.safeArea}
+      edges={['top', 'left', 'right']}
+      onLayout={(e) => setFrameWidth(e.nativeEvent.layout.width)}
+    >
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
       >
         <View style={styles.header}>
-          <BackButton onPress={() => navigation.goBack()} />
+          <BackButton onPress={() => navigation.goBack()} arrowStyle={styles.backArrow} />
         </View>
 
-        <View style={styles.body}>
-          <Text style={styles.date}>{formatKoreanDate()}</Text>
-          <Text style={styles.title}>
-            ‘{emotion?.label ?? '감정'}’였던 이유는 무엇인가요?
-          </Text>
-
-          <TextInput
-            style={styles.input}
-            placeholder="텍스트 작성"
-            placeholderTextColor={colors.placeholder}
-            multiline
-            textAlignVertical="top"
-            value={text}
-            onChangeText={setText}
-          />
+        <View
+          style={[
+            styles.dateChip,
+            {
+              top: DATE_CHIP_TOP * scale,
+              left: DATE_CHIP_LEFT * scale,
+              width: DATE_CHIP_WIDTH * scale,
+              height: DATE_CHIP_HEIGHT * scale,
+            },
+          ]}
+        >
+          <Text style={styles.dateText}>{formatKoreanDate()}</Text>
         </View>
 
-        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 20) }]}>
+        <Text style={[styles.title, { top: 156 * scale }]}>
+          ‘{emotion?.label ?? '감정'}’의 이유는?
+        </Text>
+
+        <View
+          style={[
+            styles.paperWrapper,
+            {
+              top: PAPER_WRAPPER_TOP * scale,
+              width: PAPER_WRAPPER_SIZE * scale,
+              height: PAPER_WRAPPER_SIZE * scale,
+            },
+          ]}
+        >
+          <View
+            style={[
+              styles.paper,
+              {
+                width: PAPER_SIZE * scale,
+                height: PAPER_SIZE * scale,
+                transform: [{ rotate: PAPER_ROTATION }],
+              },
+            ]}
+          >
+            <Image source={paperTexture} style={styles.paperImage} resizeMode="cover" />
+            <TextInput
+              style={styles.input}
+              placeholder="텍스트 작성"
+              placeholderTextColor="#9E9E9E"
+              multiline
+              textAlignVertical="top"
+              value={text}
+              onChangeText={setText}
+            />
+          </View>
+        </View>
+
+        <View style={[styles.footer, { bottom: CTA_BOTTOM_OFFSET * scale }]}>
           <PrimaryButton
-            title="일기 버리기"
+            title="다음"
             onPress={handleSubmit}
-            style={styles.button}
+            style={{
+              width: CTA_WIDTH * scale,
+              height: CTA_HEIGHT * scale,
+              backgroundColor: '#48FF00',
+              borderRadius: 8,
+            }}
+            textStyle={styles.buttonText}
           />
         </View>
       </KeyboardAvoidingView>
@@ -66,53 +130,74 @@ export default function WriteScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#021205',
   },
   keyboardView: {
     flex: 1,
   },
   header: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
+    paddingHorizontal: 20,
+    paddingTop: 4,
   },
-  body: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 8,
+  backArrow: {
+    color: '#BBD2B2',
+    fontSize: 20,
+    fontWeight: '600',
   },
-  date: {
-    color: colors.text,
-    fontSize: 40,
-    fontWeight: '700',
-    textAlign: 'center',
-    marginBottom: 10,
+  dateChip: {
+    position: 'absolute',
+    backgroundColor: '#222222',
+    borderRadius: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dateText: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: '500',
   },
   title: {
-    color: colors.text,
-    fontSize: 32,
-    fontWeight: '700',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    color: '#CCFFB7',
+    fontSize: 20,
+    fontWeight: '600',
     textAlign: 'center',
-    lineHeight: 42,
-    marginBottom: 20,
+  },
+  paperWrapper: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  paper: {
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  paperImage: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 0,
   },
   input: {
     flex: 1,
-    backgroundColor: '#3D3D3D',
-    color: colors.text,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 16,
-    fontSize: 18,
-    lineHeight: 26,
-    minHeight: 220,
+    zIndex: 1,
+    color: '#2A2A2A',
+    fontSize: 16,
+    lineHeight: 22,
+    padding: 20,
+    outlineStyle: 'none',
   },
   footer: {
-    paddingHorizontal: 24,
-    paddingTop: 16,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
   },
-  button: {
-    width: '100%',
-    minHeight: 58,
+  buttonText: {
+    color: '#021205',
+    fontSize: 20,
+    fontWeight: '800',
   },
 });
