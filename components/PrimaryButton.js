@@ -1,13 +1,13 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { colors } from '../constants/theme';
 
-export default function PrimaryButton({ title, onPress, style }) {
+export default function PrimaryButton({ title, onPress, style, textStyle }) {
   return (
     <Pressable
       style={({ pressed }) => [styles.button, pressed && styles.pressed, style]}
       onPress={onPress}
     >
-      <Text style={styles.text}>{title}</Text>
+      <Text style={[styles.text, textStyle]}>{title}</Text>
     </Pressable>
   );
 }
@@ -15,8 +15,9 @@ export default function PrimaryButton({ title, onPress, style }) {
 const styles = StyleSheet.create({
   button: {
     backgroundColor: colors.button,
-    borderRadius: 12,
-    paddingVertical: 16,
+    borderRadius: 8,
+    minHeight: 48,
+    paddingVertical: 12,
     paddingHorizontal: 24,
     alignItems: 'center',
     justifyContent: 'center',
@@ -26,7 +27,7 @@ const styles = StyleSheet.create({
   },
   text: {
     color: colors.text,
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: '600',
   },
 });

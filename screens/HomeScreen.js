@@ -12,22 +12,27 @@ export default function HomeScreen({ navigation, route }) {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-        <Text style={styles.logoText}>로고</Text>
+        <View style={styles.logoPlaceholder}>
+          <Text style={styles.headerLabel}>로고</Text>
+        </View>
         <Pressable
-          style={styles.calendarButton}
+          style={styles.calendarPlaceholder}
           onPress={() => navigation.navigate('Calendar')}
-          hitSlop={10}
+          hitSlop={8}
         >
-          <Text style={styles.calendarIcon}>📅</Text>
+          <Text style={styles.headerLabel}>달력</Text>
         </Pressable>
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.date}>{formatKoreanDate()}</Text>
-        <TrashCan paperCount={discardedCount} />
-        <Text style={styles.status}>
-          {discardedCount}개의 일기를 버렸어요
-        </Text>
+        <View style={styles.mainSection}>
+          <Text style={styles.date}>{formatKoreanDate()}</Text>
+          <TrashCan paperCount={discardedCount} />
+          <Text style={styles.status}>
+            {discardedCount}개의 일기를 버렸어요
+          </Text>
+        </View>
+
         <PrimaryButton
           title="오늘의 일기 버리기"
           onPress={() => navigation.navigate('EmotionSelect', { discardedCount })}
@@ -50,49 +55,54 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 24,
+    paddingTop: 11,
+    minHeight: 47,
   },
-  logoText: {
-    color: colors.text,
-    fontSize: 32,
-    fontWeight: '700',
+  logoPlaceholder: {
+    width: 100,
+    height: 36,
+    backgroundColor: colors.headerPlaceholder,
+    justifyContent: 'center',
+    paddingLeft: 12,
   },
-  calendarButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#5A5A5A',
+  calendarPlaceholder: {
+    width: 36,
+    height: 36,
+    backgroundColor: colors.headerPlaceholder,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  calendarIcon: {
-    fontSize: 22,
+  headerLabel: {
+    color: colors.headerLabel,
+    fontSize: 20,
+    fontWeight: '600',
   },
   content: {
     flex: 1,
+    paddingHorizontal: 51,
+    justifyContent: 'space-between',
+  },
+  mainSection: {
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 8,
+    paddingTop: 52,
   },
   date: {
     color: colors.text,
-    fontSize: 40,
+    fontSize: 20,
     fontWeight: '600',
-    marginBottom: 28,
+    marginBottom: 44,
   },
   status: {
     color: colors.text,
     fontSize: 20,
     fontWeight: '600',
-    marginTop: 8,
-    marginBottom: 34,
+    marginTop: 44,
+    textAlign: 'center',
   },
   mainButton: {
-    width: '100%',
-    maxWidth: 350,
-    minHeight: 60,
-    justifyContent: 'center',
+    width: 288,
+    minHeight: 48,
+    alignSelf: 'center',
+    marginBottom: 32,
   },
 });

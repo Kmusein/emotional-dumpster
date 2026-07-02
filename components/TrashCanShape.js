@@ -1,9 +1,14 @@
-import Svg, { Polygon } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
+import { colors } from '../constants/theme';
 
-export default function TrashCanShape({ width = 240, height = 190, fill = '#D4D4D4' }) {
+export default function TrashCanShape({
+  width = 197,
+  height = 189,
+  fill = colors.trashCan,
+}) {
   return (
-    <Svg width={width} height={height} viewBox="0 0 240 190">
-      <Polygon points="24,20 216,20 184,180 56,180" fill={fill} />
+    <Svg width={width} height={height} viewBox="0 0 196.5 189">
+      <Path d="M0 0H196.5L166.5 189H27.5L0 0Z" fill={fill} />
     </Svg>
   );
 }

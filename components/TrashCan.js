@@ -1,13 +1,13 @@
 import { StyleSheet, View } from 'react-native';
 import TrashCanShape from './TrashCanShape';
 
-export default function TrashCan({ paperCount = 0 }) {
+export default function TrashCan({ paperCount = 0, width = 197, height = 189 }) {
   const visiblePapers = Math.min(Math.max(paperCount, 0), 6);
 
   return (
     <View style={styles.wrapper}>
-      <View style={styles.canContainer}>
-        <TrashCanShape width={240} height={190} />
+      <View style={[styles.canContainer, { width, height }]}>
+        <TrashCanShape width={width} height={height} />
 
         {visiblePapers > 0 && (
           <View style={styles.paperLayer}>
@@ -35,11 +35,8 @@ const styles = StyleSheet.create({
   wrapper: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: 30,
   },
   canContainer: {
-    width: 240,
-    height: 190,
     alignItems: 'center',
     justifyContent: 'center',
   },

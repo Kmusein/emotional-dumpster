@@ -1,10 +1,10 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { colors } from '../constants/theme';
 
-export default function FooterDisclaimer() {
+export default function FooterDisclaimer({ style, textStyle }) {
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>감쓰는 작성한 일기를 데이터로 저장하지 않아요</Text>
+    <View style={[styles.container, style]}>
+      <Text style={[styles.text, textStyle]}>감쓰는 작성한 일기를 데이터로 저장하지 않아요</Text>
     </View>
   );
 }
@@ -17,8 +17,8 @@ const styles = StyleSheet.create({
   },
   text: {
     color: colors.text,
-    fontSize: 12,
+    fontSize: 16,
+    fontWeight: '300',
     textAlign: 'center',
-    opacity: 0.85,
   },
 });
