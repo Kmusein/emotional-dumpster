@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import FooterDisclaimer from '../components/FooterDisclaimer';
+import YeetLogo from '../components/YeetLogo';
 
 const REFERENCE_WIDTH = 390; // Figma frame width
 
@@ -15,19 +16,6 @@ const BUTTON_HEIGHT = 60;
 const BUTTON_BOTTOM_OFFSET = 71; // from Figma frame bottom
 
 const FOOTER_BOTTOM_OFFSET = 14; // tuned so FooterDisclaimer's own padding lands text at the Figma y
-
-function YeetLogo({ width }) {
-  const height = (width * LOGO_VIEWBOX_HEIGHT) / LOGO_VIEWBOX_WIDTH;
-  return (
-    <Svg width={width} height={height} viewBox={`0 0 ${LOGO_VIEWBOX_WIDTH} ${LOGO_VIEWBOX_HEIGHT}`} fill="none">
-      <Path d="M160.416 0.000319149H169.571L168.018 44.6295H161.969L160.416 0.000319149ZM160.089 55.7459C160.089 53.0485 162.296 50.8416 164.993 50.8416C167.691 50.8416 169.898 53.0485 169.898 55.7459C169.898 58.4432 167.691 60.6502 164.993 60.6502C162.296 60.6502 160.089 58.4432 160.089 55.7459Z" fill="#48FF00" />
-      <Path d="M126.151 60.1595V7.51997H115.525V4.60452e-05H145.114V7.51997H134.488V60.1595H126.151Z" fill="#48FF00" />
-      <Path d="M81.3125 0H103.218V7.11124H89.6498V24.685H103.218V31.7962H89.6498V53.0482H103.218V60.1594H81.3125V0Z" fill="#48FF00" />
-      <Path d="M44.4025 0.000239025H66.3083V7.11148H52.7398V24.6852H66.3083V31.7965H52.7398V53.0484H66.3083V60.1597H44.4025V0.000239025Z" fill="#48FF00" />
-      <Path d="M2.53576e-06 0.000440515L8.746 0.000440515L15.2851 25.0941H15.4485L21.6607 0.000440515L29.998 0.000440515L19.372 35.8836L19.372 60.1599H11.0347V35.8836L2.53576e-06 0.000440515Z" fill="#48FF00" />
-    </Svg>
-  );
-}
 
 function GoogleLogo({ size }) {
   return (
