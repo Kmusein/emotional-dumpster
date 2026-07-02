@@ -1,10 +1,10 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { colors } from '../constants/theme';
 
-export default function FooterDisclaimer({ style, textStyle }) {
+export default function FooterDisclaimer({ style, textStyle, text = '감쓰는 작성한 일기를 데이터로 저장하지 않아요' }) {
   return (
     <View style={[styles.container, style]}>
-      <Text style={[styles.text, textStyle]}>감쓰는 작성한 일기를 데이터로 저장하지 않아요</Text>
+      <Text style={[styles.text, textStyle]}>{text}</Text>
     </View>
   );
 }

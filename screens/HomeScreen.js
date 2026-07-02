@@ -104,7 +104,10 @@ export default function HomeScreen({ navigation, route }) {
       />
 
       <View style={[styles.footerLayer, { bottom: FOOTER_BOTTOM_OFFSET * scale }]}>
-        <FooterDisclaimer textStyle={styles.footerText} />
+        <FooterDisclaimer
+          text="YEET!에 작성된 일기는 던지는 순간 사라져요."
+          textStyle={styles.footerText}
+        />
       </View>
     </SafeAreaView>
   );

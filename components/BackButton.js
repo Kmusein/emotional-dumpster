@@ -1,10 +1,10 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { colors } from '../constants/theme';
 
-export default function BackButton({ onPress }) {
+export default function BackButton({ onPress, style, arrowStyle }) {
   return (
-    <Pressable style={styles.button} onPress={onPress} hitSlop={12}>
-      <Text style={styles.arrow}>←</Text>
+    <Pressable style={[styles.button, style]} onPress={onPress} hitSlop={12}>
+      <Text style={[styles.arrow, arrowStyle]}>←</Text>
     </Pressable>
   );
 }
