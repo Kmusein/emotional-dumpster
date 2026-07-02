@@ -10,7 +10,7 @@ const REFERENCE_WIDTH = 390; // Figma frame width
 
 const DATE_CHIP_WIDTH = 230;
 const DATE_CHIP_HEIGHT = 36;
-const DATE_CHIP_TOP = 122;
+const DATE_CHIP_TOP = 104;
 
 const GRID_TOP = 225;
 const GRID_LEFT = 29;
