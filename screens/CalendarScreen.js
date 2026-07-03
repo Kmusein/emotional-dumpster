@@ -57,6 +57,9 @@ export default function CalendarScreen({ navigation }) {
 
   const calendarDays = getCalendarDays(year, monthIndex);
 
+  const isToday = (day) =>
+    year === today.getFullYear() && monthIndex === today.getMonth() && day === today.getDate();
+
   return (
     <SafeAreaView
       style={styles.safeArea}
@@ -104,8 +107,8 @@ export default function CalendarScreen({ navigation }) {
             const record = records[dateKey];
 
             return (
-              <View key={dateKey} style={styles.dayCell}>
-                <Text style={styles.dayNumber}>{day}</Text>
+              <View key={dateKey} style={[styles.dayCell, isToday(day) && styles.dayCellToday]}>
+                <Text style={[styles.dayNumber, isToday(day) && styles.dayNumberToday]}>{day}</Text>
                 {record ? (
                   <View style={styles.emojiColumn}>
                     <Text style={styles.negativeEmoji}>{record.negativeEmotion?.emoji ?? ''}</Text>
@@ -193,9 +196,15 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     gap: 4,
   },
+  dayCellToday: {
+    backgroundColor: '#48FF00',
+  },
   dayNumber: {
     color: '#BBD2B2',
     fontSize: 15,
+  },
+  dayNumberToday: {
+    color: '#FFFFFF',
   },
   emojiColumn: {
     alignItems: 'center',
