@@ -202,10 +202,11 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   negativeEmoji: {
-    fontSize: 18,
+    fontSize: 16,
     transform: [{ rotate: '-15deg' }],
+    filter: 'grayscale(1)',
   },
   positiveEmoji: {
-    fontSize: 22,
+    fontSize: 26,
   },
 });
