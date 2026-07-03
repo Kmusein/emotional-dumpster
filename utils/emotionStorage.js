@@ -1,6 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const DATE_KEY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+import { supabase } from '../lib/supabase';
 
 export function formatDateKey(date = new Date()) {
   const year = date.getFullYear();
@@ -18,36 +16,49 @@ function serializeEmotion(emotion) {
   };
 }
 
+async function getCurrentUserId() {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  return session?.user?.id ?? null;
+}
+
 export async function saveEmotionRecord(date, negativeEmotion, positiveEmotion) {
-  const key = formatDateKey(date);
-  const value = JSON.stringify({
-    negativeEmotion: serializeEmotion(negativeEmotion),
-    positiveEmotion: serializeEmotion(positiveEmotion),
-  });
-  await AsyncStorage.setItem(key, value);
+  const userId = await getCurrentUserId();
+  if (!userId) return;
+
+  await supabase.from('emotion_records').upsert(
+    {
+      user_id: userId,
+      record_date: formatDateKey(date),
+      negative_emotion: serializeEmotion(negativeEmotion),
+      positive_emotion: serializeEmotion(positiveEmotion),
+    },
+    { onConflict: 'user_id,record_date' },
+  );
 }
 
 export async function getEmotionRecordsForMonth(year, monthIndex) {
-  const monthPrefix = `${year}-${String(monthIndex + 1).padStart(2, '0')}`;
-  const allKeys = await AsyncStorage.getAllKeys();
-  const monthKeys = allKeys.filter(
-    (key) => DATE_KEY_PATTERN.test(key) && key.startsWith(monthPrefix),
-  );
+  const userId = await getCurrentUserId();
+  if (!userId) return {};
 
-  if (monthKeys.length === 0) {
-    return {};
-  }
+  const startDate = formatDateKey(new Date(year, monthIndex, 1));
+  const endDate = formatDateKey(new Date(year, monthIndex + 1, 1));
 
-  const entries = await AsyncStorage.multiGet(monthKeys);
+  const { data, error } = await supabase
+    .from('emotion_records')
+    .select('record_date, negative_emotion, positive_emotion')
+    .gte('record_date', startDate)
+    .lt('record_date', endDate);
+
+  if (error || !data) return {};
+
   const records = {};
-
-  entries.forEach(([key, value]) => {
-    if (!value) return;
-    try {
-      records[key] = JSON.parse(value);
-    } catch {
-      // ignore invalid entries
-    }
+  data.forEach((row) => {
+    records[row.record_date] = {
+      negativeEmotion: row.negative_emotion,
+      positiveEmotion: row.positive_emotion,
+    };
   });
 
   return records;
