@@ -39,7 +39,10 @@ export default function LoginScreen() {
     setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: Platform.OS === 'web' ? { redirectTo: window.location.origin } : undefined,
+      options: {
+        ...(Platform.OS === 'web' ? { redirectTo: window.location.origin } : null),
+        queryParams: { prompt: 'select_account' },
+      },
     });
     if (error) {
       console.error('Google 로그인 실패:', error.message);
