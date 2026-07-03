@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Ellipse, Path } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 import FooterDisclaimer from '../components/FooterDisclaimer';
 import PrimaryButton from '../components/PrimaryButton';
+import TrashIllustration from '../components/TrashIllustration';
 import YeetLogo from '../components/YeetLogo';
 
 const REFERENCE_WIDTH = 390; // Figma frame width
@@ -13,7 +14,6 @@ const MINI_LOGO_HEIGHT = 17.8679;
 const MINI_LOGO_ROTATION = '-11.72deg';
 
 const TRASH_VIEWBOX_WIDTH = 290.195;
-const TRASH_VIEWBOX_HEIGHT = 325.713;
 const TRASH_LEFT = 45.76;
 const TRASH_TOP = 207;
 
@@ -27,17 +27,6 @@ const CTA_HEIGHT = 56;
 const CTA_BOTTOM_OFFSET = 73; // from Figma frame bottom
 
 const FOOTER_BOTTOM_OFFSET = 14; // tuned so FooterDisclaimer's own padding lands text at the Figma y
-
-function TrashIllustration({ width }) {
-  const height = (width * TRASH_VIEWBOX_HEIGHT) / TRASH_VIEWBOX_WIDTH;
-  return (
-    <Svg width={width} height={height} viewBox={`0 0 ${TRASH_VIEWBOX_WIDTH} ${TRASH_VIEWBOX_HEIGHT}`} fill="none">
-      <Ellipse cx="129.18" cy="83.9254" rx="119" ry="55" transform="rotate(-15 129.18 83.9254)" fill="#6E6E6E" />
-      <Path d="M14.235 114.725L244.125 53.126L256.388 234.119L94.1122 277.601L14.235 114.725Z" fill="#D9D9D9" />
-      <Ellipse cx="175.121" cy="255.377" rx="84" ry="50.3088" transform="rotate(-15 175.121 255.377)" fill="#D9D9D9" />
-    </Svg>
-  );
-}
 
 function CalendarIcon({ size, color = '#BBD2B2' }) {
   return (
