@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import FooterDisclaimer from '../components/FooterDisclaimer';
 import YeetLogo from '../components/YeetLogo';
+import { supabase } from '../lib/supabase';
 
 const REFERENCE_WIDTH = 390; // Figma frame width
 
@@ -28,12 +29,24 @@ function GoogleLogo({ size }) {
   );
 }
 
-export default function LoginScreen({ navigation }) {
+export default function LoginScreen() {
   const [frameWidth, setFrameWidth] = useState(REFERENCE_WIDTH);
+  const [loading, setLoading] = useState(false);
   const scale = frameWidth / REFERENCE_WIDTH;
 
-  const handleGoogleLogin = () => {
-    navigation.replace('Home');
+  const handleGoogleLogin = async () => {
+    if (loading) return;
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: Platform.OS === 'web' ? { redirectTo: window.location.origin } : undefined,
+    });
+    if (error) {
+      console.error('Google 로그인 실패:', error.message);
+      setLoading(false);
+    }
+    // On success (web), the browser redirects to Google, so loading stays true
+    // until the page unloads. App.js picks up the resulting session afterwards.
   };
 
   const buttonHeight = BUTTON_HEIGHT * scale;
@@ -58,6 +71,7 @@ export default function LoginScreen({ navigation }) {
         <Pressable
           style={[
             styles.googleButton,
+            loading && styles.googleButtonDisabled,
             {
               width: BUTTON_WIDTH * scale,
               height: buttonHeight,
@@ -65,9 +79,19 @@ export default function LoginScreen({ navigation }) {
             },
           ]}
           onPress={handleGoogleLogin}
+          disabled={loading}
         >
-          <GoogleLogo size={buttonHeight * 0.4} />
-          <Text style={styles.googleLabel}>구글로 계속하기</Text>
+          {loading ? (
+            <>
+              <ActivityIndicator size="small" color="#1F1F1F" />
+              <Text style={styles.googleLabel}>로그인 중...</Text>
+            </>
+          ) : (
+            <>
+              <GoogleLogo size={buttonHeight * 0.4} />
+              <Text style={styles.googleLabel}>구글로 계속하기</Text>
+            </>
+          )}
         </Pressable>
       </View>
 
@@ -109,6 +133,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#F2F2F2',
     gap: 12,
+  },
+  googleButtonDisabled: {
+    opacity: 0.7,
   },
   googleLabel: {
     color: '#1F1F1F',

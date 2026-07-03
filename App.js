@@ -1,8 +1,10 @@
+import { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { NavigationContainer, DarkTheme } from '@react-navigation/native';
+import { NavigationContainer, DarkTheme, useNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Platform, StyleSheet, View } from 'react-native';
 import { colors } from './constants/theme';
+import { supabase } from './lib/supabase';
 import SplashScreen from './screens/SplashScreen';
 import LoginScreen from './screens/LoginScreen';
 import HomeScreen from './screens/HomeScreen';
@@ -43,9 +45,29 @@ function AppShell({ children }) {
 }
 
 export default function App() {
+  const navigationRef = useNavigationContainerRef();
+
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      // Only react to a session becoming available (fresh sign-in, or the
+      // initial check on app load/OAuth redirect) - ignore background events
+      // like TOKEN_REFRESHED so an active session doesn't yank the user back
+      // to Home mid-flow.
+      if (event !== 'SIGNED_IN' && event !== 'INITIAL_SESSION') return;
+      if (!session) return;
+      if (!navigationRef.isReady()) return;
+
+      navigationRef.reset({ index: 0, routes: [{ name: 'Home' }] });
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigationRef]);
+
   return (
     <AppShell>
-      <NavigationContainer theme={appTheme}>
+      <NavigationContainer ref={navigationRef} theme={appTheme}>
         <StatusBar style="light" />
         <Stack.Navigator
           initialRouteName="Splash"
