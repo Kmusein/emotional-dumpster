@@ -27,15 +27,24 @@ const PAPER_SIZE = 220;
 const PAPER_ROTATION = '-15deg';
 const READY_SCALE = 0.52;
 const PULL_SCALE_SHRINK = 0.12; // extra squeeze as the player pulls back
-const MAX_PULL_REFERENCE = 100; // pixels, in the 390-wide reference frame
 
-function clampVector(dx, dy, maxMagnitude) {
-  const distance = Math.hypot(dx, dy);
-  if (distance <= maxMagnitude || distance === 0) {
-    return { x: dx, y: dy, distance };
-  }
-  const ratio = maxMagnitude / distance;
-  return { x: dx * ratio, y: dy * ratio, distance: maxMagnitude };
+// Pull range, in the 390-wide reference frame. Downward pull gets much more
+// room than sideways/up — dragging the paper further down reads more like a
+// slingshot windup and keeps the trajectory into the can readable.
+const MAX_PULL_X = 90;
+const MAX_PULL_UP = 90;
+const MAX_PULL_DOWN = 240;
+
+function clampPull(dx, dy, scaleFactor) {
+  const maxX = MAX_PULL_X * scaleFactor;
+  const maxUp = MAX_PULL_UP * scaleFactor;
+  const maxDown = MAX_PULL_DOWN * scaleFactor;
+  const x = Math.max(-maxX, Math.min(maxX, dx));
+  const y = dy >= 0 ? Math.min(dy, maxDown) : Math.max(dy, -maxUp);
+  const normX = x / maxX;
+  const normY = y >= 0 ? y / maxDown : y / maxUp;
+  const ratio = Math.min(1, Math.hypot(normX, normY));
+  return { x, y, ratio };
 }
 
 export default function AnimationScreen({ navigation, route }) {
@@ -55,27 +64,37 @@ export default function AnimationScreen({ navigation, route }) {
   const dragOffset = useRef({ x: 0, y: 0 });
   const fallbackTimer = useRef(null);
   const hasLaunched = useRef(false);
+  const hintLoop = useRef(null);
 
   const paperScale = useRef(new Animated.Value(1)).current;
   const paperRotate = useRef(new Animated.Value(0)).current;
   const paperTranslateX = useRef(new Animated.Value(0)).current;
   const paperTranslateY = useRef(new Animated.Value(0)).current;
   const trashCanOpacity = useRef(new Animated.Value(0)).current;
+  const hintBounce = useRef(new Animated.Value(0)).current;
 
   const paperRotation = paperRotate.interpolate({
     inputRange: [0, 0.5, 1, 1.7],
     outputRange: ['0deg', '-12deg', '-28deg', '-75deg'],
   });
+  const hintArrowTranslateY = hintBounce.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 8],
+  });
+
+  const stopHint = () => {
+    setShowHint(false);
+    hintLoop.current?.stop();
+  };
 
   const launchThrow = (dx, dy) => {
     if (hasLaunched.current || !frameHeight) return;
     hasLaunched.current = true;
     clearTimeout(fallbackTimer.current);
-    setShowHint(false);
+    stopHint();
     setPhase('throw');
 
-    const { x: pullX, y: pullY, distance } = clampVector(dx, dy, MAX_PULL_REFERENCE * scale);
-    const pullRatio = distance / (MAX_PULL_REFERENCE * scale);
+    const { x: pullX, y: pullY, ratio: pullRatio } = clampPull(dx, dy, scale);
     const duration = MAX_THROW_DURATION - pullRatio * (MAX_THROW_DURATION - MIN_THROW_DURATION);
 
     const openingX = (TRASH_LEFT + OPENING_X_FRACTION * TRASH_VIEWBOX_WIDTH) * scale;
@@ -139,19 +158,17 @@ export default function AnimationScreen({ navigation, route }) {
       onMoveShouldSetPanResponder: () => phaseRef.current === 'ready',
       onPanResponderGrant: () => {
         clearTimeout(fallbackTimer.current);
-        setShowHint(false);
+        stopHint();
       },
       onPanResponderMove: (_evt, gestureState) => {
-        const currentScale = latest.current.scale;
-        const { x, y, distance } = clampVector(
+        const { x, y, ratio: pullRatio } = clampPull(
           gestureState.dx,
           gestureState.dy,
-          MAX_PULL_REFERENCE * currentScale
+          latest.current.scale
         );
         dragOffset.current = { x, y };
         paperTranslateX.setValue(x);
         paperTranslateY.setValue(y);
-        const pullRatio = distance / (MAX_PULL_REFERENCE * currentScale);
         paperScale.setValue(READY_SCALE - pullRatio * PULL_SCALE_SHRINK);
       },
       onPanResponderRelease: () => {
@@ -188,11 +205,29 @@ export default function AnimationScreen({ navigation, route }) {
         duration: 250,
         useNativeDriver: true,
       }).start();
+      hintLoop.current = Animated.loop(
+        Animated.sequence([
+          Animated.timing(hintBounce, {
+            toValue: 1,
+            duration: 550,
+            easing: Easing.inOut(Easing.quad),
+            useNativeDriver: true,
+          }),
+          Animated.timing(hintBounce, {
+            toValue: 0,
+            duration: 550,
+            easing: Easing.inOut(Easing.quad),
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      hintLoop.current.start();
       fallbackTimer.current = setTimeout(() => latest.current.launchThrow(0, 0), FALLBACK_DELAY);
     });
 
     return () => {
       crumpleAnimation.stop();
+      hintLoop.current?.stop();
       clearTimeout(fallbackTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -241,7 +276,16 @@ export default function AnimationScreen({ navigation, route }) {
           {emotion?.emoji ? <Text style={styles.emoji}>{emotion.emoji}</Text> : null}
         </Animated.View>
 
-        {showHint ? <Text style={styles.hint}>휴지를 당겼다가 놓아서 던져보세요</Text> : null}
+        {showHint ? (
+          <View style={styles.hintContainer} pointerEvents="none">
+            <Text style={styles.hintText}>드래그해서 던져주세요</Text>
+            <Animated.Text
+              style={[styles.hintArrow, { transform: [{ translateY: hintArrowTranslateY }] }]}
+            >
+              ↓
+            </Animated.Text>
+          </View>
+        ) : null}
       </View>
     </SafeAreaView>
   );
@@ -279,11 +323,21 @@ const styles = StyleSheet.create({
     fontSize: 64,
     position: 'absolute',
   },
-  hint: {
+  hintContainer: {
     position: 'absolute',
     bottom: 90,
-    color: '#7D7D7D',
-    fontSize: 14,
-    fontWeight: '300',
+    alignItems: 'center',
+  },
+  hintText: {
+    color: '#BBD2B2',
+    fontSize: 15,
+    fontWeight: '600',
+    letterSpacing: 0.2,
+  },
+  hintArrow: {
+    color: '#BBD2B2',
+    fontSize: 18,
+    fontWeight: '700',
+    marginTop: 2,
   },
 });
