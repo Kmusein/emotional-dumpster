@@ -27,6 +27,7 @@ const PAPER_SIZE = 220;
 const PAPER_ROTATION = '-15deg';
 const READY_SCALE = 0.52;
 const PULL_SCALE_SHRINK = 0.12; // extra squeeze as the player pulls back
+const REST_Y_OFFSET = 70; // reference px, nudges the resting paper down from dead screen-center
 
 // Pull range, in the 390-wide reference frame. Downward pull gets much more
 // room than sideways/up — dragging the paper further down reads more like a
@@ -100,7 +101,7 @@ export default function AnimationScreen({ navigation, route }) {
     const openingX = (TRASH_LEFT + OPENING_X_FRACTION * TRASH_VIEWBOX_WIDTH) * scale;
     const openingY = (TRASH_TOP + OPENING_Y_FRACTION * TRASH_VIEWBOX_HEIGHT) * scale;
     const throwTargetX = openingX - frameWidth / 2;
-    const throwTargetY = openingY - frameHeight / 2;
+    const throwTargetY = openingY - frameHeight / 2 - REST_Y_OFFSET * scale;
 
     // Fly from wherever the player pulled it back to, toward the can's
     // opening — the pull only controls how forceful the release feels.
@@ -259,6 +260,7 @@ export default function AnimationScreen({ navigation, route }) {
               height: PAPER_SIZE * scale,
               transform: [
                 { translateX: paperTranslateX },
+                { translateY: REST_Y_OFFSET * scale },
                 { translateY: paperTranslateY },
                 { scale: paperScale },
                 { rotate: paperRotation },
@@ -273,7 +275,6 @@ export default function AnimationScreen({ navigation, route }) {
           ) : (
             <Image source={paperBall} style={styles.paperBallImage} resizeMode="contain" />
           )}
-          {emotion?.emoji ? <Text style={styles.emoji}>{emotion.emoji}</Text> : null}
         </Animated.View>
 
         {showHint ? (
@@ -318,10 +319,6 @@ const styles = StyleSheet.create({
   },
   paperBallImage: {
     ...StyleSheet.absoluteFillObject,
-  },
-  emoji: {
-    fontSize: 64,
-    position: 'absolute',
   },
   hintContainer: {
     position: 'absolute',

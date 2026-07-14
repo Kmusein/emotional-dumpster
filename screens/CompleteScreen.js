@@ -36,8 +36,8 @@ export default function CompleteScreen({ navigation, route }) {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.titleBlock}>
         <Text style={styles.title}>
-          {negativeLabel}{getObjectParticle(negativeLabel)} 슝 던지고{'\n'}
-          {positiveLabel}{getObjectParticle(positiveLabel)} 품었어요!
+          {negativeLabel}{getObjectParticle(negativeLabel)} 버리고{'\n'}
+          {positiveLabel}{getObjectParticle(positiveLabel)} 얻었어요!
         </Text>
       </View>
 
