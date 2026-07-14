@@ -23,14 +23,42 @@ const DATE_CHIP_TOP = 104;
 const DATE_CHIP_LEFT = (REFERENCE_WIDTH - DATE_CHIP_WIDTH) / 2; // 80, matches Figma x
 
 const PAPER_WRAPPER_SIZE = 350.806;
-const PAPER_WRAPPER_TOP = 189;
+const PAPER_WRAPPER_TOP = 219; // nudged down a bit from 189, still above screen middle
 const PAPER_WRAPPER_LEFT = (REFERENCE_WIDTH - PAPER_WRAPPER_SIZE) / 2; // matches DATE_CHIP_LEFT's pattern
 const PAPER_SIZE = 286.432;
 const PAPER_ROTATION = '-15deg';
 
+const INPUT_PADDING = 20;
+const INPUT_LINE_HEIGHT = 22;
+const NOTEBOOK_LINE_COLOR = 'rgba(42, 42, 42, 0.15)';
+
 const CTA_WIDTH = 312;
 const CTA_HEIGHT = 56;
 const CTA_BOTTOM_OFFSET = 73; // from Figma frame bottom
+
+function NotebookLines({ paperHeight, scale }) {
+  const paddingScaled = INPUT_PADDING * scale;
+  const lineHeightScaled = INPUT_LINE_HEIGHT * scale;
+  const count = Math.max(0, Math.floor((paperHeight - paddingScaled) / lineHeightScaled));
+
+  return (
+    <View style={[StyleSheet.absoluteFillObject, { zIndex: 0 }]} pointerEvents="none">
+      {Array.from({ length: count }, (_, i) => (
+        <View
+          key={i}
+          style={[
+            styles.notebookLine,
+            {
+              left: 12 * scale,
+              right: 12 * scale,
+              top: paddingScaled + (i + 1) * lineHeightScaled - 4 * scale,
+            },
+          ]}
+        />
+      ))}
+    </View>
+  );
+}
 
 export default function WriteScreen({ navigation, route }) {
   const [text, setText] = useState('');
@@ -99,6 +127,7 @@ export default function WriteScreen({ navigation, route }) {
             ]}
           >
             <Image source={paperTexture} style={styles.paperImage} resizeMode="cover" />
+            <NotebookLines paperHeight={PAPER_SIZE * scale} scale={scale} />
             <TextInput
               style={styles.input}
               placeholder="텍스트 작성"
@@ -173,11 +202,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   paper: {
-    borderRadius: 4,
+    borderRadius: 0,
     overflow: 'hidden',
   },
   paperImage: {
     ...StyleSheet.absoluteFillObject,
+    zIndex: 0,
+  },
+  notebookLine: {
+    position: 'absolute',
+    height: 1,
+    backgroundColor: NOTEBOOK_LINE_COLOR,
     zIndex: 0,
   },
   input: {
@@ -185,8 +220,8 @@ const styles = StyleSheet.create({
     zIndex: 1,
     color: '#2A2A2A',
     fontSize: 16,
-    lineHeight: 22,
-    padding: 20,
+    lineHeight: INPUT_LINE_HEIGHT,
+    padding: INPUT_PADDING,
     outlineStyle: 'none',
   },
   footer: {
