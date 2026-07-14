@@ -24,6 +24,7 @@ const DATE_CHIP_LEFT = (REFERENCE_WIDTH - DATE_CHIP_WIDTH) / 2; // 80, matches F
 
 const PAPER_WRAPPER_SIZE = 350.806;
 const PAPER_WRAPPER_TOP = 189;
+const PAPER_WRAPPER_LEFT = (REFERENCE_WIDTH - PAPER_WRAPPER_SIZE) / 2; // matches DATE_CHIP_LEFT's pattern
 const PAPER_SIZE = 286.432;
 const PAPER_ROTATION = '-15deg';
 
@@ -81,6 +82,7 @@ export default function WriteScreen({ navigation, route }) {
             styles.paperWrapper,
             {
               top: PAPER_WRAPPER_TOP * scale,
+              left: PAPER_WRAPPER_LEFT * scale,
               width: PAPER_WRAPPER_SIZE * scale,
               height: PAPER_WRAPPER_SIZE * scale,
             },
@@ -167,8 +169,6 @@ const styles = StyleSheet.create({
   },
   paperWrapper: {
     position: 'absolute',
-    left: 0,
-    right: 0,
     alignItems: 'center',
     justifyContent: 'center',
   },
