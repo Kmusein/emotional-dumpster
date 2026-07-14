@@ -1,9 +1,26 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import FooterDisclaimer from '../components/FooterDisclaimer';
 import YeetLogo from '../components/YeetLogo';
 import { supabase } from '../lib/supabase';
+
+// Google refuses to complete OAuth inside embedded in-app browsers (KakaoTalk,
+// Instagram, Facebook, Line, ...) with a "disallowed_useragent" error — that's
+// a Google-side block, not something fixable from our code. The only real fix
+// is getting the user into a real browser first.
+function getUserAgent() {
+  if (Platform.OS !== 'web' || typeof navigator === 'undefined') return '';
+  return navigator.userAgent || '';
+}
+
+function isKakaoInAppBrowser(ua) {
+  return /KAKAOTALK/i.test(ua);
+}
+
+function isKnownInAppBrowser(ua) {
+  return /KAKAOTALK|FBAN|FBAV|Instagram|Line\//i.test(ua);
+}
 
 const REFERENCE_WIDTH = 390; // Figma frame width
 
@@ -32,10 +49,21 @@ function GoogleLogo({ size }) {
 export default function LoginScreen() {
   const [frameWidth, setFrameWidth] = useState(REFERENCE_WIDTH);
   const [loading, setLoading] = useState(false);
+  const [inAppBrowser, setInAppBrowser] = useState(false);
   const scale = frameWidth / REFERENCE_WIDTH;
 
+  useEffect(() => {
+    const ua = getUserAgent();
+    if (isKakaoInAppBrowser(ua)) {
+      // Android KakaoTalk supports bouncing the current page out to the
+      // system browser, where Google sign-in actually works.
+      window.location.href = `kakaotalk://web/openExternal?url=${encodeURIComponent(window.location.href)}`;
+    }
+    setInAppBrowser(isKnownInAppBrowser(ua));
+  }, []);
+
   const handleGoogleLogin = async () => {
-    if (loading) return;
+    if (loading || inAppBrowser) return;
     setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -71,10 +99,16 @@ export default function LoginScreen() {
       </View>
 
       <View style={[styles.buttonLayer, { bottom: BUTTON_BOTTOM_OFFSET * scale }]}>
+        {inAppBrowser ? (
+          <Text style={[styles.inAppWarning, { width: BUTTON_WIDTH * scale }]}>
+            카카오톡 등 인앱 브라우저에서는 구글 로그인이 제한돼요.{'\n'}
+            오른쪽 위 '⋯' 메뉴에서 다른 브라우저로 열어주세요.
+          </Text>
+        ) : null}
         <Pressable
           style={[
             styles.googleButton,
-            loading && styles.googleButtonDisabled,
+            (loading || inAppBrowser) && styles.googleButtonDisabled,
             {
               width: BUTTON_WIDTH * scale,
               height: buttonHeight,
@@ -82,7 +116,7 @@ export default function LoginScreen() {
             },
           ]}
           onPress={handleGoogleLogin}
-          disabled={loading}
+          disabled={loading || inAppBrowser}
         >
           {loading ? (
             <>
@@ -129,6 +163,14 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 2,
+  },
+  inAppWarning: {
+    color: '#BBD2B2',
+    fontSize: 13,
+    fontWeight: '600',
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: 16,
   },
   googleButton: {
     flexDirection: 'row',
