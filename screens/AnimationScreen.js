@@ -278,7 +278,7 @@ export default function AnimationScreen({ navigation, route }) {
 
         {showHint ? (
           <View style={styles.hintContainer} pointerEvents="none">
-            <Text style={styles.hintText}>드래그해서 던져주세요</Text>
+            <Text style={styles.hintText}>당겼다 놓으면 던져져요</Text>
             <Animated.Text
               style={[styles.hintArrow, { transform: [{ translateY: hintArrowTranslateY }] }]}
             >
