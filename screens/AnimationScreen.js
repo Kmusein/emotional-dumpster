@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Image, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, Image, PanResponder, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import TrashIllustration from '../components/TrashIllustration';
 
@@ -7,7 +7,9 @@ const paperCrumpledTexture = require('../assets/images/paper-crumpled.png');
 const paperBall = require('../assets/images/paper-ball.png');
 
 const CRUMPLE_DURATION = 1500;
-const THROW_DURATION = 480;
+const MIN_THROW_DURATION = 420; // full pull — fast, forceful
+const MAX_THROW_DURATION = 780; // no pull / tap — still clearly visible
+const FALLBACK_DELAY = 4000; // auto-throw if the user never drags
 
 const REFERENCE_WIDTH = 390; // Figma frame width
 
@@ -23,6 +25,18 @@ const OPENING_Y_FRACTION = 83.9254 / TRASH_VIEWBOX_HEIGHT;
 
 const PAPER_SIZE = 220;
 const PAPER_ROTATION = '-15deg';
+const READY_SCALE = 0.52;
+const PULL_SCALE_SHRINK = 0.12; // extra squeeze as the player pulls back
+const MAX_PULL_REFERENCE = 100; // pixels, in the 390-wide reference frame
+
+function clampVector(dx, dy, maxMagnitude) {
+  const distance = Math.hypot(dx, dy);
+  if (distance <= maxMagnitude || distance === 0) {
+    return { x: dx, y: dy, distance };
+  }
+  const ratio = maxMagnitude / distance;
+  return { x: dx * ratio, y: dy * ratio, distance: maxMagnitude };
+}
 
 export default function AnimationScreen({ navigation, route }) {
   const emotion = route?.params?.emotion;
@@ -31,6 +45,16 @@ export default function AnimationScreen({ navigation, route }) {
   const [frameHeight, setFrameHeight] = useState(0);
   const scale = frameWidth / REFERENCE_WIDTH;
   const [phase, setPhase] = useState('crumple');
+  const [showHint, setShowHint] = useState(false);
+
+  const phaseRef = useRef(phase);
+  useEffect(() => {
+    phaseRef.current = phase;
+  }, [phase]);
+
+  const dragOffset = useRef({ x: 0, y: 0 });
+  const fallbackTimer = useRef(null);
+  const hasLaunched = useRef(false);
 
   const paperScale = useRef(new Animated.Value(1)).current;
   const paperRotate = useRef(new Animated.Value(0)).current;
@@ -43,91 +67,136 @@ export default function AnimationScreen({ navigation, route }) {
     outputRange: ['0deg', '-12deg', '-28deg', '-75deg'],
   });
 
-  useEffect(() => {
-    // Wait for real layout so the throw target below is measured against the
-    // actual screen, not the fallback reference size.
-    if (!frameHeight) return undefined;
+  const launchThrow = (dx, dy) => {
+    if (hasLaunched.current || !frameHeight) return;
+    hasLaunched.current = true;
+    clearTimeout(fallbackTimer.current);
+    setShowHint(false);
+    setPhase('throw');
 
-    // Aim the throw at the trash can's opening (the top-rim ellipse in
-    // TrashIllustration), not just straight down from the paper's start point.
+    const { x: pullX, y: pullY, distance } = clampVector(dx, dy, MAX_PULL_REFERENCE * scale);
+    const pullRatio = distance / (MAX_PULL_REFERENCE * scale);
+    const duration = MAX_THROW_DURATION - pullRatio * (MAX_THROW_DURATION - MIN_THROW_DURATION);
+
     const openingX = (TRASH_LEFT + OPENING_X_FRACTION * TRASH_VIEWBOX_WIDTH) * scale;
     const openingY = (TRASH_TOP + OPENING_Y_FRACTION * TRASH_VIEWBOX_HEIGHT) * scale;
     const throwTargetX = openingX - frameWidth / 2;
     const throwTargetY = openingY - frameHeight / 2;
 
-    const animation = Animated.sequence([
-      Animated.parallel([
-        Animated.timing(paperScale, {
-          toValue: 0.52,
-          duration: CRUMPLE_DURATION,
-          easing: Easing.inOut(Easing.cubic),
-          useNativeDriver: true,
-        }),
-        Animated.timing(paperRotate, {
-          toValue: 1,
-          duration: CRUMPLE_DURATION,
-          easing: Easing.inOut(Easing.cubic),
-          useNativeDriver: true,
-        }),
-      ]),
-      Animated.parallel([
-        Animated.timing(trashCanOpacity, {
-          toValue: 1,
-          duration: 150,
-          useNativeDriver: true,
-        }),
-        Animated.timing(paperTranslateX, {
-          toValue: throwTargetX,
-          duration: THROW_DURATION,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(paperTranslateY, {
-          toValue: throwTargetY,
-          duration: THROW_DURATION,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(paperRotate, {
-          toValue: 1.7,
-          duration: THROW_DURATION,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(paperScale, {
-          toValue: 0.15,
-          duration: THROW_DURATION,
-          easing: Easing.in(Easing.quad),
-          useNativeDriver: true,
-        }),
-      ]),
-    ]);
+    // Fly from wherever the player pulled it back to, toward the can's
+    // opening — the pull only controls how forceful the release feels.
+    paperTranslateX.setValue(pullX);
+    paperTranslateY.setValue(pullY);
+    paperScale.setValue(READY_SCALE - pullRatio * PULL_SCALE_SHRINK);
 
-    const phaseTimer = setTimeout(() => setPhase('throw'), CRUMPLE_DURATION);
-
-    animation.start(({ finished }) => {
+    Animated.parallel([
+      Animated.timing(trashCanOpacity, {
+        toValue: 1,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(paperTranslateX, {
+        toValue: throwTargetX,
+        duration,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+      Animated.timing(paperTranslateY, {
+        toValue: throwTargetY,
+        duration,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+      Animated.timing(paperRotate, {
+        toValue: 1 + pullRatio * 0.7,
+        duration,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+      Animated.timing(paperScale, {
+        toValue: 0.25 - pullRatio * 0.1,
+        duration,
+        easing: Easing.in(Easing.quad),
+        useNativeDriver: true,
+      }),
+    ]).start(({ finished }) => {
       if (finished) {
         navigation.replace('PositiveEmotion', { discardedCount, negativeEmotion: emotion });
       }
     });
+  };
+
+  // The PanResponder instance is created once, so its handlers must read
+  // scale/launchThrow through this ref rather than closing over them —
+  // otherwise they'd stay stuck on the values from the very first render
+  // (frameHeight still 0), and every release would silently no-op.
+  const latest = useRef({ scale, launchThrow });
+  latest.current = { scale, launchThrow };
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => phaseRef.current === 'ready',
+      onMoveShouldSetPanResponder: () => phaseRef.current === 'ready',
+      onPanResponderGrant: () => {
+        clearTimeout(fallbackTimer.current);
+        setShowHint(false);
+      },
+      onPanResponderMove: (_evt, gestureState) => {
+        const currentScale = latest.current.scale;
+        const { x, y, distance } = clampVector(
+          gestureState.dx,
+          gestureState.dy,
+          MAX_PULL_REFERENCE * currentScale
+        );
+        dragOffset.current = { x, y };
+        paperTranslateX.setValue(x);
+        paperTranslateY.setValue(y);
+        const pullRatio = distance / (MAX_PULL_REFERENCE * currentScale);
+        paperScale.setValue(READY_SCALE - pullRatio * PULL_SCALE_SHRINK);
+      },
+      onPanResponderRelease: () => {
+        latest.current.launchThrow(dragOffset.current.x, dragOffset.current.y);
+      },
+      onPanResponderTerminate: () => {
+        latest.current.launchThrow(dragOffset.current.x, dragOffset.current.y);
+      },
+    })
+  ).current;
+
+  useEffect(() => {
+    const crumpleAnimation = Animated.parallel([
+      Animated.timing(paperScale, {
+        toValue: READY_SCALE,
+        duration: CRUMPLE_DURATION,
+        easing: Easing.inOut(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(paperRotate, {
+        toValue: 1,
+        duration: CRUMPLE_DURATION,
+        easing: Easing.inOut(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]);
+
+    crumpleAnimation.start(({ finished }) => {
+      if (!finished) return;
+      setPhase('ready');
+      setShowHint(true);
+      Animated.timing(trashCanOpacity, {
+        toValue: 1,
+        duration: 250,
+        useNativeDriver: true,
+      }).start();
+      fallbackTimer.current = setTimeout(() => latest.current.launchThrow(0, 0), FALLBACK_DELAY);
+    });
 
     return () => {
-      clearTimeout(phaseTimer);
-      animation.stop();
+      crumpleAnimation.stop();
+      clearTimeout(fallbackTimer.current);
     };
-  }, [
-    navigation,
-    discardedCount,
-    emotion,
-    frameWidth,
-    frameHeight,
-    scale,
-    paperRotate,
-    paperScale,
-    paperTranslateX,
-    paperTranslateY,
-    trashCanOpacity,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <SafeAreaView
@@ -147,6 +216,7 @@ export default function AnimationScreen({ navigation, route }) {
 
       <View style={styles.stage}>
         <Animated.View
+          {...panResponder.panHandlers}
           style={[
             styles.paperWrapper,
             {
@@ -170,6 +240,8 @@ export default function AnimationScreen({ navigation, route }) {
           )}
           {emotion?.emoji ? <Text style={styles.emoji}>{emotion.emoji}</Text> : null}
         </Animated.View>
+
+        {showHint ? <Text style={styles.hint}>휴지를 당겼다가 놓아서 던져보세요</Text> : null}
       </View>
     </SafeAreaView>
   );
@@ -206,5 +278,12 @@ const styles = StyleSheet.create({
   emoji: {
     fontSize: 64,
     position: 'absolute',
+  },
+  hint: {
+    position: 'absolute',
+    bottom: 90,
+    color: '#7D7D7D',
+    fontSize: 14,
+    fontWeight: '300',
   },
 });
