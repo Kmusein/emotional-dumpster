@@ -26,7 +26,7 @@ const PAPER_WRAPPER_SIZE = 350.806;
 const PAPER_WRAPPER_TOP = 219; // nudged down a bit from 189, still above screen middle
 const PAPER_WRAPPER_LEFT = (REFERENCE_WIDTH - PAPER_WRAPPER_SIZE) / 2; // matches DATE_CHIP_LEFT's pattern
 const PAPER_SIZE = 286.432;
-const PAPER_ROTATION = '-15deg';
+const PAPER_ROTATION = '0deg';
 
 const INPUT_PADDING = 20;
 const INPUT_LINE_HEIGHT = 22;
