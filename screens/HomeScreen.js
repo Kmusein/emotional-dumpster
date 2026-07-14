@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import Svg, { Path } from 'react-native-svg';
 import FooterDisclaimer from '../components/FooterDisclaimer';
 import PrimaryButton from '../components/PrimaryButton';
 import TrashIllustration from '../components/TrashIllustration';
 import YeetLogo from '../components/YeetLogo';
+import { getEmotionRecordCount } from '../utils/emotionStorage';
 
 const REFERENCE_WIDTH = 390; // Figma frame width
 
@@ -40,9 +42,24 @@ function CalendarIcon({ size, color = '#BBD2B2' }) {
 }
 
 export default function HomeScreen({ navigation, route }) {
-  const discardedCount = route?.params?.discardedCount ?? 0;
+  // Route param gives an instant optimistic count right after a throw;
+  // the focus effect below then corrects it to the real Supabase total
+  // (needed on fresh loads/logins, where no param is passed at all).
+  const [discardedCount, setDiscardedCount] = useState(route?.params?.discardedCount ?? 0);
   const [frameWidth, setFrameWidth] = useState(REFERENCE_WIDTH);
   const scale = frameWidth / REFERENCE_WIDTH;
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+      getEmotionRecordCount().then((count) => {
+        if (isActive) setDiscardedCount(count);
+      });
+      return () => {
+        isActive = false;
+      };
+    }, []),
+  );
 
   return (
     <SafeAreaView

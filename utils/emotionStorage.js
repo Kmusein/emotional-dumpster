@@ -64,6 +64,19 @@ export async function getEmotionRecordsForMonth(year, monthIndex) {
   return records;
 }
 
+export async function getEmotionRecordCount() {
+  const userId = await getCurrentUserId();
+  if (!userId) return 0;
+
+  const { count, error } = await supabase
+    .from('emotion_records')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId);
+
+  if (error) return 0;
+  return count ?? 0;
+}
+
 export function getCalendarDays(year, monthIndex) {
   const firstDay = new Date(year, monthIndex, 1);
   const lastDay = new Date(year, monthIndex + 1, 0);
